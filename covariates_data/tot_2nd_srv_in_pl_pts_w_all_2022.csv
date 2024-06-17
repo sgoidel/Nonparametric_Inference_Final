@@ -1,0 +1,145 @@
+rank,name,country_name,country_id,value
+1,Rafael Nadal,Spain,ESP,55.73%
+2,Novak Djokovic,Serbia,SRB,54.97%
+3,Daniil Medvedev,Russian Federation,RUS,54.51%
+4,Carlos Alcaraz Garfia,Spain,ESP,53.71%
+5,Juan Pablo Varillas Patino Samudio,Peru,PER,53.39%
+6,Denis Shapovalov,Canada,CAN,52.90%
+7,Alex De Minaur,Australia,AUS,52.89%
+8,Pedro Martinez Portero,Spain,ESP,52.88%
+9,Roberto Bautista Agut,Spain,ESP,52.77%
+10,Pablo Carreno Busta,Spain,ESP,52.73%
+11,Holger Vitus Nodskov Rune,Denmark,DEN,52.62%
+12,Yoshihito Nishioka,Japan,JPN,52.46%
+13,Dominik Koepfer,Germany,GER,52.43%
+14,Casper Ruud,Norway,NOR,52.43%
+15,Roman Safiullin,Russian Federation,RUS,52.43%
+16,Corentin Moutet,France,FRA,52.39%
+17,Jannik Sinner,Italy,ITA,52.23%
+18,Maxime Cressy,United States,USA,52.02%
+19,Francisco Cerundolo,Argentina,ARG,51.98%
+20,Miomir Kecmanovic,Serbia,SRB,51.95%
+21,Jan Lennard Struff,Germany,GER,51.90%
+22,Aleksandar Vukic,Australia,AUS,51.87%
+23,Nuno Borges,Portugal,POR,51.84%
+24,Taylor Harry Fritz,United States,USA,51.79%
+25,Diego Sebastian Schwartzman,Argentina,ARG,51.79%
+26,Mikael Ymer,Sweden,SWE,51.75%
+27,Richard Gasquet,France,FRA,51.73%
+28,Stefanos Tsitsipas,Greece,GRE,51.67%
+29,John Millman,Australia,AUS,51.66%
+30,Andy Murray,United Kingdom,GBR,51.60%
+31,Gael Monfils,France,FRA,51.56%
+32,Nick Kyrgios,Australia,AUS,51.53%
+33,Tomas Machac,Czech Republic,CZE,51.38%
+34,Jack Draper,United Kingdom,GBR,51.30%
+35,Adrian Mannarino,France,FRA,51.23%
+36,Alexander Zverev,Germany,GER,51.10%
+37,Marton Fucsovics,Hungary,HUN,51.07%
+38,Lorenzo Musetti,Italy,ITA,51.04%
+39,Emil Ruusuvuori,Finland,FIN,50.92%
+40,Fabio Fognini,Italy,ITA,50.81%
+41,Roberto Carballes Baena,Spain,ESP,50.62%
+42,Jenson Brooksby,United States,USA,50.59%
+43,Federico Coria,Argentina,ARG,50.45%
+44,Joao Sousa,Portugal,POR,50.44%
+45,Sebastian Baez,Argentina,ARG,50.42%
+46,Ryan Peniston,United Kingdom,GBR,50.34%
+47,Thiago Monteiro,Brazil,BRA,50.34%
+48,Jason Kubler,Australia,AUS,50.28%
+49,Cameron Norrie,United Kingdom,GBR,50.26%
+50,Daniel Evans,United Kingdom,GBR,50.24%
+51,Steve Johnson,United States,USA,50.22%
+52,Grigor Dimitrov,Bulgaria,BUL,50.21%
+53,Andrey Rublev,Russian Federation,RUS,50.19%
+54,Borna Coric,Croatia,CRO,50.18%
+55,Alex Molcan,Slovakia,SVK,50.17%
+56,Marin Cilic,Croatia,CRO,50.17%
+57,Aslan Karatsev,Russian Federation,RUS,50.13%
+58,Benjamin Bonzi,France,FRA,50.11%
+59,Gilles Simon,France,FRA,50.07%
+60,Sebastian Korda,United States,USA,50.05%
+61,Kamil Majchrzak,Poland,POL,50.05%
+62,Frances Tiafoe,United States,USA,50.00%
+63,Alejandro Davidovich Fokina,Spain,ESP,49.94%
+64,Elias Ymer,Sweden,SWE,49.84%
+65,Soon Woo Kwon,"Korea, Republic of",KOR,49.84%
+66,Dominic Thiem,Austria,AUT,49.80%
+67,David Goffin,Belgium,BEL,49.76%
+68,Felix Auger Aliassime,Canada,CAN,49.74%
+69,Hubert Hurkacz,Poland,POL,49.65%
+70,Denis Kudla,United States,USA,49.49%
+71,Karen Khachanov,Russian Federation,RUS,49.49%
+72,Filip Krajinovic,Serbia,SRB,49.43%
+73,Botic Van De Zandschulp,Netherlands,NED,49.42%
+74,Tallon Griekspoor,Netherlands,NED,49.39%
+75,Hugo Gaston,France,FRA,49.39%
+76,Mackenzie Mcdonald,United States,USA,49.38%
+77,Brandon Nakashima,United States,USA,49.33%
+78,Radu Albot,"Moldova, Republic of",MDA,49.21%
+79,Albert Ramos,Spain,ESP,49.16%
+80,James Duckworth,Australia,AUS,49.14%
+81,Jaume Munar,Spain,ESP,49.08%
+82,Tommy Paul,United States,USA,49.03%
+83,Stan Wawrinka,Switzerland,SUI,48.97%
+84,Jack Sock,United States,USA,48.96%
+85,Chun Hsin Tseng,"Taiwan, Province of China",TPE,48.95%
+86,Marc Andrea Huesler,Switzerland,SUI,48.83%
+87,Reilly Opelka,United States,USA,48.82%
+88,Dominic Stephan Stricker,Switzerland,SUI,48.82%
+89,Pablo Andujar,Spain,ESP,48.81%
+90,Lucas Pouille,France,FRA,48.80%
+91,Jiri Vesely,Czech Republic,CZE,48.78%
+92,Bernabe Zapata Miralles,Spain,ESP,48.72%
+93,Oscar Otte,Germany,GER,48.71%
+94,Jeffrey John Wolf,United States,USA,48.49%
+95,Egor Gerasimov,Belarus,BLR,48.48%
+96,Facundo Bagnis,Argentina,ARG,48.33%
+97,Dusan Lajovic,Serbia,SRB,48.27%
+98,Andreas Seppi,Italy,ITA,48.22%
+99,Alejandro Tabilo,Chile,CHI,48.19%
+100,Jiri Lehecka,Czech Republic,CZE,48.09%
+101,Marcos Giron,United States,USA,47.87%
+102,Christian Garin,Chile,CHI,47.80%
+103,Fernando Verdasco,Spain,ESP,47.78%
+104,Christopher Oconnell,Australia,AUS,47.73%
+105,Nikoloz Basilashvili,Georgia,GEO,47.72%
+106,Daniel Elahi Galan Riveros,Colombia,COL,47.33%
+107,Carlos Taberner,Spain,ESP,47.32%
+108,Hugo Dellien,"Bolivia, Plurinational State of",BOL,47.32%
+109,Laslo Djere,Serbia,SRB,47.30%
+110,Liam Broady,United Kingdom,GBR,47.24%
+111,Quentin Halys,France,FRA,47.21%
+112,Ricardas Berankis,Lithuania,LTU,47.15%
+113,Alexander Bublik,Kazakhstan,KAZ,47.13%
+113,Federico Delbonis,Argentina,ARG,47.13%
+115,Alexei Popyrin,Australia,AUS,46.85%
+116,Ugo Humbert,France,FRA,46.84%
+117,Tim Van Rijthoven,Netherlands,NED,46.66%
+118,Giulio Zeppieri,Italy,ITA,46.44%
+119,Manuel Guinard,France,FRA,46.32%
+120,Ilya Ivashka,Belarus,BLR,46.31%
+121,Peter Gojowczyk,Germany,GER,45.90%
+122,Matteo Berrettini,Italy,ITA,45.81%
+123,Lorenzo Sonego,Italy,ITA,45.75%
+124,Benoit Paire,France,FRA,45.74%
+125,Arthur Rinderknech,France,FRA,45.73%
+126,Henri Laaksonen,Switzerland,SUI,45.61%
+127,Stefan Kozlov,United States,USA,45.53%
+128,Marco Cecchinato,Italy,ITA,45.35%
+129,Thanasi Kokkinakis,Australia,AUS,45.06%
+130,Lloyd George Muirhead Harris,South Africa,RSA,44.39%
+131,Hugo Grenier,France,FRA,44.23%
+132,Tomas Martin Etcheverry,Argentina,ARG,44.03%
+133,Nicolas Jarry,Chile,CHI,43.70%
+134,Norbert Gombos,Slovakia,SVK,43.63%
+135,Taro Daniel,Japan,JPN,43.53%
+136,John Isner,United States,USA,43.37%
+137,Jordan Thompson,Australia,AUS,43.30%
+138,Max Purcell,Australia,AUS,43.15%
+139,Christopher Eubanks,United States,USA,42.74%
+140,Daniel Altmaier,Germany,GER,42.73%
+141,Aljaz Bedene,Slovenia,SLO,42.24%
+142,Sam Querrey,United States,USA,42.00%
+143,Jo Wilfried Tsonga,France,FRA,41.19%
+144,Feliciano Lopez,Spain,ESP,40.00%

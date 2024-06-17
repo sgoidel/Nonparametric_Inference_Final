@@ -1,0 +1,810 @@
+---
+title: "Data preprocessing"
+author: "Ethan Naegele"
+date: "2024-05-23"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(gam)
+library(lubridate)
+library(caret)
+library(splines)
+library(locfit)
+library(locpol)
+library(BradleyTerry2)
+library(mgcv)
+library(e1071)
+```
+
+NOTE: NOT USING BPS PER MATCH SINCE THAT HAS 1 LESS OBSERVATION THAN BPS PER SET
+
+```{r}
+data_2019 <- read_csv('atp_matches_2019.csv')
+data_2020 <- read_csv('atp_matches_2020.csv')
+data_2021 <- read_csv('atp_matches_2021.csv')
+data_2022 <- read_csv('atp_matches_2022.csv')
+data_2023 <- read_csv('atp_matches_2023.csv')
+```
+
+
+```{r}
+# Make sure to copy this to another file and change your path when you run this code on your own computer!
+
+first_serve_all_2019 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/1st_serve_won_pct_all_2019.csv')
+
+second_serve_all_2019 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/2nd_serve_won_pct_all_2019.csv')
+
+aces_per_set_all_2019 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/aces_per_set_all_2019.csv')
+
+bps_per_match_all_2019 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/bps_per_match_all_2019.csv')
+
+bps_per_set_all_2019 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/bps_per_set_all_2019.csv')
+
+dfs_per_set_all_2019 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/dfs_per_set_all_2019.csv')
+
+pts_won_per_rtn_game_all_2019 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/pts_won_per_rtn_game_all_2019.csv')
+
+rtn_in_play_pts_won_all_2019 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/rtn_in_play_pts_won_all_2019.csv')
+
+tot_2nd_srv_in_pl_pts_w_all_2019 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/tot_2nd_srv_in_pl_pts_w_all_2019.csv')
+
+
+```
+
+
+
+
+```{r}
+vectors_list <- list(first_serve_all_2019$name, 
+                     second_serve_all_2019$name, 
+                     aces_per_set_all_2019$name,
+                     bps_per_match_all_2019$name, 
+                     bps_per_set_all_2019$name,
+                     dfs_per_set_all_2019$name, 
+                     pts_won_per_rtn_game_all_2019$name,
+                     rtn_in_play_pts_won_all_2019$name, 
+                     tot_2nd_srv_in_pl_pts_w_all_2019$name)
+
+# Find the intersection of all vectors
+common_names <- Reduce(intersect, vectors_list)
+common_names
+```
+
+
+
+```{r}
+left_join_by_name <- function(df1, df2) {
+  left_join(df1, df2, by = "name")
+}
+
+rename_and_select <- function(df, new_value_name) {
+  df %>%
+    select(name, value) %>%
+    rename(!!new_value_name := value)
+}
+```
+
+```{r}
+
+data_frames_list <- list(first_serve_all_2019 = first_serve_all_2019, 
+                         second_serve_all_2019 = second_serve_all_2019, 
+                         aces_per_set_all_2019 = aces_per_set_all_2019,
+                         bps_per_set_all_2019 = bps_per_set_all_2019,
+                         dfs_per_set_all_2019 = dfs_per_set_all_2019, 
+                         pts_won_per_rtn_game_all_2019 = pts_won_per_rtn_game_all_2019,
+                         rtn_in_play_pts_won_all_2019 = rtn_in_play_pts_won_all_2019, 
+                         tot_2nd_srv_in_pl_pts_w_all_2019 = tot_2nd_srv_in_pl_pts_w_all_2019)
+
+
+# Apply the function to each data frame and store the results in a list
+renamed_data_frames <- mapply(rename_and_select, data_frames_list, names(data_frames_list), SIMPLIFY = FALSE)
+
+# Perform left joins iteratively
+merged_data_2019 <- Reduce(left_join_by_name, renamed_data_frames)
+```
+
+
+
+```{r}
+covs_2019 <- na.omit(merged_data_2019)
+```
+
+```{r}
+# Make sure to copy this to another file and change your path when you run this code on your own computer!
+
+first_serve_all_2020 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/1st_serve_won_pct_all_2020.csv')
+
+second_serve_all_2020 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/2nd_serve_won_pct_all_2020.csv')
+
+aces_per_set_all_2020 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/aces_per_set_all_2020.csv')
+
+bps_per_set_all_2020 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/bps_per_set_all_2020.csv')
+
+dfs_per_set_all_2020 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/dfs_per_set_all_2020.csv')
+
+pts_won_per_rtn_game_all_2020 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/pts_won_per_rtn_game_all_2020.csv')
+
+rtn_in_play_pts_won_all_2020 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/rtn_in_play_pts_won_all_2020.csv')
+
+tot_2nd_srv_in_pl_pts_w_all_2020 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/tot_2nd_srv_in_pl_pts_w_all_2020.csv')
+
+
+```
+
+
+```{r}
+
+data_frames_list <- list(first_serve_all_2020 = first_serve_all_2020, 
+                         second_serve_all_2020 = second_serve_all_2020, 
+                         aces_per_set_all_2020 = aces_per_set_all_2020,
+                         bps_per_set_all_2020 = bps_per_set_all_2020,
+                         dfs_per_set_all_2020 = dfs_per_set_all_2020, 
+                         pts_won_per_rtn_game_all_2020 = pts_won_per_rtn_game_all_2020,
+                         rtn_in_play_pts_won_all_2020 = rtn_in_play_pts_won_all_2020, 
+                         tot_2nd_srv_in_pl_pts_w_all_2020 = tot_2nd_srv_in_pl_pts_w_all_2020)
+
+
+
+# Apply the function to each data frame and store the results in a list
+renamed_data_frames <- mapply(rename_and_select, data_frames_list, names(data_frames_list), SIMPLIFY = FALSE)
+
+# Perform left joins iteratively
+merged_data_2020 <- Reduce(left_join_by_name, renamed_data_frames)
+
+covs_2020 <- na.omit(merged_data_2020)
+
+```
+
+
+```{r}
+first_serve_all_2021 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/1st_serve_won_pct_all_2021.csv')
+
+second_serve_all_2021 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/2nd_serve_won_pct_all_2021.csv')
+
+aces_per_set_all_2021 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/aces_per_set_all_2021.csv')
+
+bps_per_set_all_2021 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/bps_per_set_all_2021.csv')
+
+dfs_per_set_all_2021 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/dfs_per_set_all_2021.csv')
+
+pts_won_per_rtn_game_all_2021 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/pts_won_per_rtn_game_all_2021.csv')
+
+rtn_in_play_pts_won_all_2021 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/rtn_in_play_pts_won_all_2021.csv')
+
+tot_2nd_srv_in_pl_pts_w_all_2021 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/tot_2nd_srv_in_pl_pts_w_all_2021.csv')
+
+
+```
+
+
+```{r}
+
+data_frames_list <- list(first_serve_all_2021 = first_serve_all_2021, 
+                         second_serve_all_2021 = second_serve_all_2021, 
+                         aces_per_set_all_2021 = aces_per_set_all_2021,
+                         bps_per_set_all_2021 = bps_per_set_all_2021,
+                         dfs_per_set_all_2021 = dfs_per_set_all_2021, 
+                         pts_won_per_rtn_game_all_2021 = pts_won_per_rtn_game_all_2021,
+                         rtn_in_play_pts_won_all_2021 = rtn_in_play_pts_won_all_2021, 
+                         tot_2nd_srv_in_pl_pts_w_all_2021 = tot_2nd_srv_in_pl_pts_w_all_2021)
+
+
+
+# Apply the function to each data frame and store the results in a list
+renamed_data_frames <- mapply(rename_and_select, data_frames_list, names(data_frames_list), SIMPLIFY = FALSE)
+
+# Perform left joins iteratively
+merged_data_2021 <- Reduce(left_join_by_name, renamed_data_frames)
+
+covs_2021 <- na.omit(merged_data_2021)
+
+```
+
+
+```{r}
+first_serve_all_2022 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/1st_serve_won_pct_all_2022.csv')
+
+second_serve_all_2022 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/2nd_serve_won_pct_all_2022.csv')
+
+aces_per_set_all_2022 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/aces_per_set_all_2022.csv')
+
+bps_per_set_all_2022 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/bps_per_set_all_2022.csv')
+
+dfs_per_set_all_2022 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/dfs_per_set_all_2022.csv')
+
+pts_won_per_rtn_game_all_2022 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/pts_won_per_rtn_game_all_2022.csv')
+
+rtn_in_play_pts_won_all_2022 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/rtn_in_play_pts_won_all_2022.csv')
+
+tot_2nd_srv_in_pl_pts_w_all_2022 <- read_csv('~/Documents/R files/Stat_274_project/covariates_data/tot_2nd_srv_in_pl_pts_w_all_2022.csv')
+
+
+```
+
+```{r}
+
+data_frames_list <- list(first_serve_all_2022 = first_serve_all_2022, 
+                         second_serve_all_2022 = second_serve_all_2022, 
+                         aces_per_set_all_2022 = aces_per_set_all_2022,
+                         bps_per_set_all_2022 = bps_per_set_all_2022,
+                         dfs_per_set_all_2022 = dfs_per_set_all_2022, 
+                         pts_won_per_rtn_game_all_2022 = pts_won_per_rtn_game_all_2022,
+                         rtn_in_play_pts_won_all_2022 = rtn_in_play_pts_won_all_2022, 
+                         tot_2nd_srv_in_pl_pts_w_all_2022 = tot_2nd_srv_in_pl_pts_w_all_2022)
+
+
+
+# Apply the function to each data frame and store the results in a list
+renamed_data_frames <- mapply(rename_and_select, data_frames_list, names(data_frames_list), SIMPLIFY = FALSE)
+
+# Perform left joins iteratively
+merged_data_2022 <- Reduce(left_join_by_name, renamed_data_frames)
+
+covs_2022 <- na.omit(merged_data_2022)
+
+```
+
+
+```{r}
+# reduced dataframes
+data_2019r <- data_2019 %>% 
+  select(tourney_date, winner_name,
+        loser_name, winner_rank, loser_rank,
+         w_ace, w_df, w_1stIn, w_1stWon, w_svpt, w_2ndWon, w_bpFaced, w_bpSaved,
+         l_ace, l_df, l_1stIn, l_1stWon, l_svpt, l_2ndWon, l_bpFaced, l_bpSaved
+         ) %>% 
+  na.omit()
+
+data_2020r <- data_2020 %>% 
+  select(tourney_date, winner_name,
+        loser_name, winner_rank, loser_rank,
+         w_ace, w_df, w_1stIn, w_1stWon, w_svpt, w_2ndWon, w_bpFaced, w_bpSaved,
+         l_ace, l_df, l_1stIn, l_1stWon, l_svpt, l_2ndWon, l_bpFaced, l_bpSaved
+         ) %>% 
+  na.omit()
+
+data_2021r <- data_2021 %>% 
+  select(tourney_date, winner_name,
+        loser_name, winner_rank, loser_rank,
+         w_ace, w_df, w_1stIn, w_1stWon, w_svpt, w_2ndWon, w_bpFaced, w_bpSaved,
+         l_ace, l_df, l_1stIn, l_1stWon, l_svpt, l_2ndWon, l_bpFaced, l_bpSaved
+         ) %>% 
+  na.omit()
+
+data_2022r <- data_2022 %>% 
+  select(tourney_date, winner_name,
+        loser_name, winner_rank, loser_rank,
+         w_ace, w_df, w_1stIn, w_1stWon, w_svpt, w_2ndWon, w_bpFaced, w_bpSaved,
+         l_ace, l_df, l_1stIn, l_1stWon, l_svpt, l_2ndWon, l_bpFaced, l_bpSaved
+         ) %>% 
+  na.omit()
+
+data_2023r <- data_2023 %>% 
+  select(tourney_date, winner_name,
+        loser_name, winner_rank, loser_rank,
+         w_ace, w_df, w_1stIn, w_1stWon, w_svpt, w_2ndWon, w_bpFaced, w_bpSaved,
+         l_ace, l_df, l_1stIn, l_1stWon, l_svpt, l_2ndWon, l_bpFaced, l_bpSaved
+         ) %>% 
+  na.omit()
+
+
+```
+
+
+
+```{r}
+# now, consider only the matches for which we have covariate data available for both players
+
+names_vec <- intersect(c(data_2020r$loser_name, data_2020r$winner_name), covs_2019$name)
+data_2020_train <- data_2020r %>%
+  filter(winner_name %in% names_vec & loser_name %in% names_vec)
+  
+names_vec <- intersect(c(data_2021r$loser_name, data_2021r$winner_name), covs_2020$name)
+data_2021_train <- data_2021r %>%
+  filter(winner_name %in% names_vec & loser_name %in% names_vec)
+
+names_vec <- intersect(c(data_2022r$loser_name, data_2022r$winner_name), covs_2021$name)
+data_2022_train <- data_2022r %>%
+  filter(winner_name %in% names_vec & loser_name %in% names_vec)
+  
+  
+
+```
+
+
+
+```{r}
+# There are some columns in the dataframes that are character-valued that contain percentages. We convert those to decimal proportions.
+convert_percentage <- function(df, columns) {
+  df %>%
+    mutate(across(all_of(columns), ~ as.numeric(sub("%", "", .)) / 100))
+}
+
+# List of years to process
+years <- 2019:2022
+
+# Create a named list of data frames
+covs_list <- list(covs_2019 = covs_2019, covs_2020 = covs_2020, covs_2021 = covs_2021, covs_2022 = covs_2022)
+
+# Process each year
+for (year in years) {
+  # Generate column names for the current year
+  columns_to_convert <- c(paste0("first_serve_all_", year),
+                          paste0("second_serve_all_", year),
+                          paste0("rtn_in_play_pts_won_all_", year),
+                          paste0("tot_2nd_srv_in_pl_pts_w_all_", year))
+  
+  # Convert percentages in the corresponding data frame
+  covs_list[[paste0("covs_", year)]] <- convert_percentage(covs_list[[paste0("covs_", year)]], columns_to_convert)
+}
+
+# Assign back the processed data frames to the original names
+covs_2019 <- covs_list$covs_2019
+covs_2020 <- covs_list$covs_2020
+covs_2021 <- covs_list$covs_2021
+covs_2022 <- covs_list$covs_2022
+```
+
+
+
+```{r}
+# combine the dataframes
+data_train <- rbind(data_2020_train, data_2021_train, data_2022_train)
+```
+
+
+```{r}
+# the dates are not formatted well in the original dataframe, reformatting using lubridate
+data_train$tourney_date <- ymd(data_train$tourney_date)
+
+# Ensure the dates are in Date class (in case they need formatting to mdy, they remain Date class)
+data_train$tourney_date <- as.Date(data_train$tourney_date, format = "%Y-%m-%d")
+```
+
+```{r}
+# create a variable keeping track of the year that the match took place in
+
+data_train$year <- year(data_train$tourney_date)
+```
+
+Determining player 1 and player 2, which determines how we code the outcome (0 or 1)
+
+```{r}
+data_train$player1_name <- ifelse(data_train$winner_rank < data_train$loser_rank, data_train$winner_name, data_train$loser_name) # denote player 1 by whoever has higher rank, for sake of consistency
+
+data_train$player2_name <- ifelse(data_train$winner_rank < data_train$loser_rank, data_train$loser_name, data_train$winner_name)
+
+ # Create a binary outcome variable (1 if player1 wins, 0 if player2 wins)
+data_train$outcome <- ifelse(data_train$winner_rank < data_train$loser_rank, 1, 0)
+
+
+data_train$player1_name <- as.factor(data_train$player1_name)
+data_train$player2_name <- as.factor(data_train$player2_name)
+
+```
+
+I want to get the covariates we had before in the dataframe as well
+
+
+```{r}
+
+# Function to create player stats for a given year
+create_player_stats <- function(year) {
+  data <- get(paste0("data_", year, "r"))
+  
+  data_winner <- data %>%
+    select(winner_name, w_ace, w_df, w_1stIn, w_1stWon, w_svpt, w_2ndWon, w_bpFaced, w_bpSaved) %>%
+    rename(player_name = winner_name, player_ace = w_ace, player_df = w_df, 
+           player_1stIn = w_1stIn,
+           player_1stWon = w_1stWon,
+           player_svpt = w_svpt,
+           player_2ndWon = w_2ndWon,
+           player_bpFaced = w_bpFaced,
+           player_bpSaved = w_bpSaved
+           ) %>% 
+    mutate(player_1stEfficiency = player_1stWon / pmax(player_1stIn, 1)) %>% 
+    mutate(player_2ndEfficiency = player_2ndWon / pmax(player_svpt - player_1stIn, 1))
+  
+  data_loser <- data %>%
+    select(loser_name, l_ace, l_df, l_1stIn, l_1stWon, l_svpt, l_2ndWon, l_bpFaced, l_bpSaved) %>%
+    rename(player_name = loser_name, player_ace = l_ace, player_df = l_df,
+           player_1stIn = l_1stIn,
+           player_1stWon = l_1stWon,
+           player_svpt = l_svpt,
+           player_2ndWon = l_2ndWon,
+           player_bpFaced = l_bpFaced,
+           player_bpSaved = l_bpSaved
+           ) %>% 
+    mutate(player_1stEfficiency = player_1stWon / pmax(player_1stIn, 1)) %>% 
+    mutate(player_2ndEfficiency = player_2ndWon / pmax(player_svpt - player_1stIn, 1))
+  
+  # Combine both datasets
+  combined_data <- bind_rows(data_winner, data_loser)
+  
+  # Aggregate the data
+  player_stats <- combined_data %>%
+    group_by(player_name) %>%
+    summarise(
+      total_aces = sum(player_ace, na.rm = TRUE),
+      total_dfs = sum(player_df, na.rm = TRUE),
+      average_2ndWon = mean(player_2ndWon, na.rm = TRUE),
+      average_1stEfficiency = mean(player_1stEfficiency, na.rm = TRUE),
+      average_2ndEfficiency = mean(player_2ndEfficiency, na.rm = TRUE),
+      total_bpSaved = sum(player_bpSaved, na.rm = TRUE),
+      total_bpFaced = sum(player_bpFaced, na.rm = TRUE),
+      .groups = 'drop'  # This drops the grouping structure after summarising
+    )
+  
+  # Calculate ace to double fault ratio
+  player_stats <- player_stats %>%
+    mutate(ace_df_ratio = total_aces / pmax(total_dfs, 1)) %>% 
+    mutate(bp_saved_faced_ratio = total_bpSaved / pmax(total_bpFaced, 1))
+  
+  covs <- get(paste0("covs_", year))
+  player_stats <- player_stats %>% 
+    filter(player_name %in% covs$name)
+  
+  assign(paste0("player_stats_", year), player_stats, envir = .GlobalEnv)
+}
+
+
+
+```
+
+
+```{r}
+merge_player_stats_with_covs <- function(year) {
+  player_stats <- get(paste0("player_stats_", year))
+  covs <- get(paste0("covs_", year))
+  
+  covs_merged <- covs %>%
+    left_join(player_stats, by = c('name' = "player_name")) %>% 
+    na.omit()
+  
+  
+  assign(paste0("covs_", year, "_merged"), covs_merged, envir = .GlobalEnv)
+}
+
+# Create player stats and merge with covs for each year from 2019 to 2022
+for (year in 2019:2022) {
+  create_player_stats(year)
+  merge_player_stats_with_covs(year)
+}
+```
+
+
+
+I now want to add columns to data_train in the following way. If the year is Y, I want to find the winner's and loser's values for each of the columns in covs_Y-1, so for example if the year is 2020, I want to find the values of first_serve_all_2020, second_serve_all_2020, aces_per_set_all_2020, bps_per_set_all_2020, dfs_per_set_all_2020, pts_won_per_rtn_game_all_2020, rtn_in_play_pts_won_all_2020, tot_2nd_srv_in_pl_pts_w_all_2020
+
+for both the winner and loser. 
+
+
+```{r}
+# SEEMS TO BE CORRECT WORKING VERSION
+
+# Assuming data_train, covs_2019, covs_2020, and covs_2021 dataframes are already loaded
+
+# List of covs dataframes
+covs_list <- list(`2019` = covs_2019_merged, `2020` = covs_2020_merged, `2021` = covs_2021_merged)
+
+# Function to rename columns for player1 and player2
+rename_columns <- function(covs, year) {
+  colnames(covs)[2:ncol(covs)] <- gsub(paste0("_all_", year), "", colnames(covs)[2:ncol(covs)])
+  covs_player1 <- covs
+  covs_player2 <- covs
+  colnames(covs_player1)[2:ncol(covs_player1)] <- paste0("player1_", colnames(covs_player1)[2:ncol(covs_player1)])
+  colnames(covs_player2)[2:ncol(covs_player2)] <- paste0("player2_", colnames(covs_player2)[2:ncol(covs_player2)])
+  list(player1 = covs_player1, player2 = covs_player2)
+}
+
+# Ensure the 'name' column in each covariate dataframe is unique
+covs_list <- lapply(covs_list, function(covs) {
+  covs <- covs[!duplicated(covs$name), ]
+  return(covs)
+})
+
+# Create an empty list to store the processed data for each year
+data_train_list <- list()
+
+# Iterate over each year and merge the covariate data
+for (year in c(2020, 2021, 2022)) {
+  # Filter data_train for the current year
+  data_train_year <- data_train %>% filter(year == !!year)
+  
+  # Select the appropriate covariate dataframe
+  covs <- covs_list[[as.character(year - 1)]]
+  
+  # Rename columns for player1 and player2
+  renamed_covs <- rename_columns(covs, year - 1)
+  
+  # Debugging print statements
+  print(paste("Processing year:", year))
+  print(paste("Rows in data_train_year before merge:", nrow(data_train_year)))
+  
+  # Merge the player1 data
+  data_train_year <- data_train_year %>%
+    left_join(renamed_covs$player1, by = c("player1_name" = "name"))
+  
+  # Debugging print statements
+  print(paste("Rows in data_train_year after player1 merge:", nrow(data_train_year)))
+  
+  # Merge the player2 data
+  data_train_year <- data_train_year %>%
+    left_join(renamed_covs$player2, by = c("player2_name" = "name"))
+  
+  # Debugging print statements
+  print(paste("Rows in data_train_year after player2 merge:", nrow(data_train_year)))
+  
+  # Append the processed data for the current year to the list
+  data_train_list[[as.character(year)]] <- data_train_year
+}
+
+# Combine the processed data for all years into a single dataframe
+data_train_processed <- bind_rows(data_train_list)
+
+# Display the resulting dataframe
+print(head(data_train_processed))
+print(paste("Rows in data_train_processed:", nrow(data_train_processed)))
+print(paste("Rows in original data_train:", nrow(data_train)))
+
+
+```
+
+
+
+```{r}
+# we check that there should not be any additional NAs introduced
+data_train_processed <-  na.omit(data_train_processed) 
+```
+
+
+```{r}
+# trim down the number of variables
+
+data_train_covs <- data_train_processed %>% 
+  select(outcome, tourney_date, player1_name, player2_name, 
+         player1_ace_df_ratio, player1_average_1stEfficiency, 
+         player1_average_2ndEfficiency, player1_first_serve, 
+         player1_second_serve,
+         player1_aces_per_set, player1_average_2ndWon, 
+         player1_bp_saved_faced_ratio, player1_bps_per_set,
+         player1_dfs_per_set, player1_pts_won_per_rtn_game, 
+         player1_rtn_in_play_pts_won, player1_tot_2nd_srv_in_pl_pts_w,
+         
+         player2_ace_df_ratio, player2_average_1stEfficiency, 
+         player2_average_2ndEfficiency, player2_first_serve,
+         player2_second_serve,
+         player2_aces_per_set, player2_average_2ndWon, 
+         player2_bp_saved_faced_ratio, player2_bps_per_set,
+         player2_dfs_per_set, player2_pts_won_per_rtn_game, 
+         player2_rtn_in_play_pts_won, player2_tot_2nd_srv_in_pl_pts_w
+         )
+```
+
+
+```{r}
+scale_numeric_columns <- function(df) {
+  numeric_columns <- sapply(df, is.numeric)
+  df[numeric_columns] <- scale(df[numeric_columns])
+  return(df)
+}
+
+
+```
+
+
+```{r}
+data_train_covs <- data_train_covs %>% 
+  mutate(player1_dfs_per_set_inverse = 1 / player1_dfs_per_set,
+         player2_dfs_per_set_inverse = 1 / player2_dfs_per_set)
+```
+
+
+```{r}
+# Scale numeric columns in the data_train_processed dataframe
+data_train_covs <- scale_numeric_columns(data_train_covs)
+```
+
+```{r}
+data_train_covs <- data_train_covs %>% 
+  mutate(ace_df_ratio_diff = player1_ace_df_ratio - player2_ace_df_ratio,
+         average_1stEfficiency_diff = player1_average_1stEfficiency - player2_average_1stEfficiency,
+         average_2ndEfficiency_diff = player1_average_2ndEfficiency - player2_average_2ndEfficiency,
+         first_serve_diff = player1_first_serve - player2_first_serve,
+         second_serve_diff = player1_second_serve - player2_second_serve,
+         aces_per_set_diff = player1_aces_per_set - player2_aces_per_set,
+         average_2ndWon_diff = player1_average_2ndWon - player2_average_2ndWon,
+         bp_saved_faced_ratio_diff = player1_bp_saved_faced_ratio - player2_bp_saved_faced_ratio,
+         bps_per_set_diff = player1_bps_per_set - player2_bps_per_set,
+         dfs_per_set_diff = player1_dfs_per_set - player2_dfs_per_set,
+         pts_won_per_rtn_game_diff = player1_pts_won_per_rtn_game - player2_pts_won_per_rtn_game,
+         rtn_in_play_pts_won_diff = player1_rtn_in_play_pts_won - player2_rtn_in_play_pts_won,
+         tot_2nd_srv_in_pl_pts_w_diff = player1_tot_2nd_srv_in_pl_pts_w - player2_tot_2nd_srv_in_pl_pts_w
+         )
+```
+
+```{r}
+# the model with only the outcome and the covariates
+data_train_model <- data_train_covs %>% 
+  select(outcome, ace_df_ratio_diff, average_1stEfficiency_diff, average_2ndEfficiency_diff,
+         first_serve_diff, second_serve_diff, aces_per_set_diff, average_2ndWon_diff, 
+         bp_saved_faced_ratio_diff, bps_per_set_diff, dfs_per_set_diff, 
+         pts_won_per_rtn_game_diff, rtn_in_play_pts_won_diff, 
+         tot_2nd_srv_in_pl_pts_w_diff)
+```
+
+
+# Formatting the test set
+
+
+```{r}
+data_2023r$player1_name <- ifelse(data_2023r$winner_rank < data_2023r$loser_rank, data_2023r$winner_name, data_2023r$loser_name) # denote player 1 by whoever has higher rank, for sake of consistency
+
+data_2023r$player2_name <- ifelse(data_2023r$winner_rank < data_2023r$loser_rank, data_2023r$loser_name, data_2023r$winner_name)
+
+ # Create a binary outcome variable (1 if player1 wins, 0 if player2 wins)
+data_2023r$outcome <- ifelse(data_2023r$winner_rank < data_2023r$loser_rank, 1, 0)
+
+
+data_2023r$player1_name <- as.factor(data_2023r$player1_name)
+data_2023r$player2_name <- as.factor(data_2023r$player2_name)
+
+```
+
+```{r}
+# have to rename the levels or the classification won't work
+data_2023r$outcome <- as.factor(data_2023r$outcome)
+levels(data_2023r$outcome) <- c("loss", "win")
+```
+
+```{r}
+names_vec <- intersect(c(data_2023r$loser_name, data_2023r$winner_name), covs_2022$name)
+data_2023_test <- data_2023r %>%
+  filter(winner_name %in% names_vec & loser_name %in% names_vec)
+```
+
+```{r}
+# the dates are not formatted well in the original dataframe, reformatting using lubridate
+data_2023_test$tourney_date <- ymd(data_2023_test$tourney_date)
+
+# Ensure the dates are in Date class (in case they need formatting to mdy, they remain Date class)
+data_2023_test$tourney_date <- as.Date(data_2023_test$tourney_date, format = "%Y-%m-%d")
+
+
+# create a variable keeping track of the year that the match took place in
+
+data_2023_test$year <- year(data_2023_test$tourney_date)
+```
+
+
+
+
+
+```{r}
+# SEEMS TO BE CORRECT WORKING VERSION
+
+# Assuming data_train, covs_2019, covs_2020, and covs_2021 dataframes are already loaded
+
+# List of covs dataframes
+covs_list <- list(`2022` = covs_2022_merged)
+
+
+# Ensure the 'name' column in each covariate dataframe is unique
+covs_list <- lapply(covs_list, function(covs) {
+  covs <- covs[!duplicated(covs$name), ]
+  return(covs)
+})
+
+
+# Iterate over each year and merge the covariate data
+for (year in c(2023)) {
+  # Filter data_train for the current year
+  data_2023_test_processed <- data_2023_test %>% filter(year == !!year)
+  
+  # Select the appropriate covariate dataframe
+  covs <- covs_list[[as.character(year - 1)]]
+  
+  # Rename columns for player1 and player2
+  renamed_covs <- rename_columns(covs, year - 1)
+  
+  # Merge the player1 data
+  data_2023_test_processed <- data_2023_test_processed %>%
+    left_join(renamed_covs$player1, by = c("player1_name" = "name"))
+  
+  
+  # Merge the player2 data
+  data_2023_test_processed <- data_2023_test_processed %>%
+    left_join(renamed_covs$player2, by = c("player2_name" = "name"))
+  
+}
+
+
+# Display the resulting dataframe
+print(head(data_2023_test_processed))
+print(paste("Rows in data_train_processed:", nrow(data_2023_test_processed)))
+print(paste("Rows in original data_train:", nrow(data_2023_test)))
+
+
+```
+
+```{r}
+# we check that there should not be any additional NAs introduced
+data_2023_test_processed <-  na.omit(data_2023_test_processed) 
+```
+
+
+```{r}
+# trim down the number of variables
+
+data_2023_test_covs <- data_2023_test_processed %>% 
+  select(outcome, tourney_date, player1_name, player2_name, 
+         player1_ace_df_ratio, player1_average_1stEfficiency, 
+         player1_average_2ndEfficiency, player1_first_serve, 
+         player1_second_serve,
+         player1_aces_per_set, player1_average_2ndWon, 
+         player1_bp_saved_faced_ratio, player1_bps_per_set,
+         player1_dfs_per_set, player1_pts_won_per_rtn_game, 
+         player1_rtn_in_play_pts_won, player1_tot_2nd_srv_in_pl_pts_w,
+         
+         player2_ace_df_ratio, player2_average_1stEfficiency, 
+         player2_average_2ndEfficiency, player2_first_serve,
+         player2_second_serve,
+         player2_aces_per_set, player2_average_2ndWon, 
+         player2_bp_saved_faced_ratio, player2_bps_per_set,
+         player2_dfs_per_set, player2_pts_won_per_rtn_game, 
+         player2_rtn_in_play_pts_won, player2_tot_2nd_srv_in_pl_pts_w
+         )
+```
+
+
+
+```{r}
+data_2023_test_covs <- data_2023_test_covs %>% 
+  mutate(player1_dfs_per_set_inverse = 1 / player1_dfs_per_set,
+         player2_dfs_per_set_inverse = 1 / player2_dfs_per_set)
+```
+
+
+```{r}
+# Scale numeric columns in the data_train_processed dataframe
+data_2023_test_covs <- scale_numeric_columns(data_2023_test_covs)
+```
+
+```{r}
+data_2023_test_covs <- data_2023_test_covs %>% 
+  mutate(ace_df_ratio_diff = player1_ace_df_ratio - player2_ace_df_ratio,
+         average_1stEfficiency_diff = player1_average_1stEfficiency - player2_average_1stEfficiency,
+         average_2ndEfficiency_diff = player1_average_2ndEfficiency - player2_average_2ndEfficiency,
+         first_serve_diff = player1_first_serve - player2_first_serve,
+         second_serve_diff = player1_second_serve - player2_second_serve,
+         aces_per_set_diff = player1_aces_per_set - player2_aces_per_set,
+         average_2ndWon_diff = player1_average_2ndWon - player2_average_2ndWon,
+         bp_saved_faced_ratio_diff = player1_bp_saved_faced_ratio - player2_bp_saved_faced_ratio,
+         bps_per_set_diff = player1_bps_per_set - player2_bps_per_set,
+         dfs_per_set_diff = player1_dfs_per_set - player2_dfs_per_set,
+         pts_won_per_rtn_game_diff = player1_pts_won_per_rtn_game - player2_pts_won_per_rtn_game,
+         rtn_in_play_pts_won_diff = player1_rtn_in_play_pts_won - player2_rtn_in_play_pts_won,
+         tot_2nd_srv_in_pl_pts_w_diff = player1_tot_2nd_srv_in_pl_pts_w - player2_tot_2nd_srv_in_pl_pts_w
+         )
+```
+
+```{r}
+# the model with only the outcome and the covariates
+data_test_model <- data_2023_test_covs %>% 
+  select(outcome, ace_df_ratio_diff, average_1stEfficiency_diff, average_2ndEfficiency_diff,
+         first_serve_diff, second_serve_diff, aces_per_set_diff, average_2ndWon_diff, 
+         bp_saved_faced_ratio_diff, bps_per_set_diff, dfs_per_set_diff, 
+         pts_won_per_rtn_game_diff, rtn_in_play_pts_won_diff, 
+         tot_2nd_srv_in_pl_pts_w_diff)
+```
+
+
+
+

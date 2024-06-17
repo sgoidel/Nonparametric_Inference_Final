@@ -1,0 +1,289 @@
+---
+title: "GAM on differences - test run"
+author: "Ethan Naegele"
+date: "2024-05-08"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(gam)
+library(lubridate)
+library(caret)
+library(splines)
+library(locfit)
+library(locpol)
+library(BradleyTerry2)
+library(mgcv)
+library(e1071)
+```
+
+
+```{r}
+data_2004 <- read_csv('atp_matches_2004.csv')
+```
+
+
+```{r}
+data_2005 <- read_csv('atp_matches_2005.csv')
+```
+
+
+
+```{r}
+all_players <- c(data_2005$winner_name, data_2005$loser_name)
+unique_players <- unique(all_players)
+length(unique_players)
+```
+
+
+```{r}
+data_2004_hc <- data_2004 %>% 
+  filter(surface == 'Hard')
+```
+
+
+```{r}
+data_2005_hc <- data_2005 %>% # hard court only
+  filter(surface == 'Hard')
+```
+
+
+# Some data preprocessing stuff
+
+```{r}
+# Selecting some of the columns for analysis
+data_2004_hc <- data_2004_hc %>% 
+  select(tourney_name, tourney_date, winner_name, winner_ht,
+         winner_age, loser_name, loser_ht, loser_age, score,
+         w_ace, w_df, w_2ndWon, l_ace, l_df, l_2ndWon, 
+         winner_rank, loser_rank)
+```
+
+```{r}
+# Selecting some of the columns for analysis
+data_2005_hc <- data_2005_hc %>% 
+  select(tourney_name, tourney_date, winner_name, winner_ht,
+         winner_age, loser_name, loser_ht, loser_age, score,
+         w_ace, w_df, w_2ndWon, l_ace, l_df, l_2ndWon, 
+         winner_rank, loser_rank)
+```
+
+```{r}
+data_2004_hc <- na.omit(data_2004_hc) # just going to omit any rows with NAs in the dataframe for now
+```
+
+```{r}
+data_2005_hc <- na.omit(data_2005_hc) # just going to omit any rows with NAs in the dataframe for now
+```
+
+```{r}
+data_2005_hc$player1_name <- ifelse(data_2005_hc$winner_rank < data_2005_hc$loser_rank, data_2005_hc$winner_name, data_2005_hc$loser_name) # denote player 1 by whoever has higher rank, for sake of consistency
+
+data_2005_hc$player2_name <- ifelse(data_2005_hc$winner_rank < data_2005_hc$loser_rank, data_2005_hc$loser_name, data_2005_hc$winner_name)
+
+
+```
+
+```{r}
+ # Create a binary outcome variable (1 if player1 wins, 0 if player2 wins)
+data_2005_hc$outcome <- ifelse(data_2005_hc$winner_rank < data_2005_hc$loser_rank, 1, 0)
+
+
+data_2005_hc$player1_name <- as.factor(data_2005_hc$player1_name)
+data_2005_hc$player2_name <- as.factor(data_2005_hc$player2_name)
+```
+
+```{r}
+all_players_hc_2004 <- c(data_2004_hc$winner_name, data_2004_hc$loser_name)
+unique_players_hc_2004 <- unique(all_players_hc_2004)
+
+```
+
+
+
+```{r}
+all_players_hc_2005 <- c(data_2005_hc$winner_name, data_2005_hc$loser_name)
+unique_players_hc_2005 <- unique(all_players_hc_2005)
+length(unique_players_hc_2005)
+```
+
+
+```{r}
+# Take only the players that are in both the 2004 and 2005 dataframes
+
+unique_players <- intersect(unique_players_hc_2004, unique_players_hc_2005)
+length(unique_players)
+
+
+```
+
+```{r}
+# the intersection - players that played in both years
+data_2005_hc_int <- data_2005_hc %>% 
+  filter(winner_name %in% unique_players & loser_name %in% unique_players)
+```
+
+```{r}
+# the intersection - players that played in both years
+data_2004_hc_int <- data_2004_hc %>% 
+  filter(winner_name %in% unique_players & loser_name %in% unique_players)
+```
+
+
+```{r}
+set.seed(12)
+sampled_players <- sample(unique_players, 100) # sample 100 of the 185 players
+
+# Subset the matches to include only those involving the sampled players
+subset_matches <- data_2005_hc_int[data_2005_hc_int$winner_name %in% sampled_players | data_2005_hc_int$loser_name %in% sampled_players, ]
+
+```
+
+
+
+# Finding the average ratio of aces to double faults in 2004
+
+
+
+
+
+```{r}
+
+# Assuming your data is in data_2004_hc_int
+
+# Step 1: Reshape the data
+data_winner <- data_2004_hc_int %>%
+  select(winner_name, w_ace, w_df, w_2ndWon) %>%
+  rename(player_name = winner_name, player_ace = w_ace, player_df = w_df, player_2ndWon = w_2ndWon)
+
+data_loser <- data_2004_hc_int %>%
+  select(loser_name, l_ace, l_df, l_2ndWon) %>%
+  rename(player_name = loser_name, player_ace = l_ace, player_df = l_df, player_2ndWon = l_2ndWon)
+
+# Combine both datasets
+combined_data <- bind_rows(data_winner, data_loser)
+
+# Step 2: Aggregate the data
+player_stats_2004_hc_int <- combined_data %>%
+  group_by(player_name) %>%
+  summarise(
+    total_aces = sum(player_ace, na.rm = TRUE),
+    total_dfs = sum(player_df, na.rm = TRUE),
+    average_2ndWon = mean(player_2ndWon),
+    .groups = 'drop'  # This drops the grouping structure after summarising
+  )
+
+# Step 3: Calculate ace to double fault ratio
+player_stats_2004_hc_int <- player_stats_2004_hc_int %>%
+  mutate(ace_df_ratio = total_aces / pmax(total_dfs, 1))
+# this gives the aggregated ace to double fault ratio over the whole year, as opposed to the average of the ratios over the whole year, which are probably different by Jensen's inequality
+
+# View the result
+print(player_stats_2004_hc_int)
+
+```
+
+
+
+```{r}
+player_stats_2004_covs <- player_stats_2004_hc_int %>% 
+  select(player_name, ace_df_ratio, average_2ndWon)
+```
+
+# Adding this information into the dataset to be used as a covariate
+
+```{r}
+data_2005_hc_int <- data_2005_hc_int %>%
+  left_join(player_stats_2004_covs, by = c("player1_name" = "player_name")) %>%
+  rename(
+    ace_df_ratio_player1 = ace_df_ratio,
+    average_2ndWon_player1 = average_2ndWon
+  )
+```
+
+```{r}
+# Join for player2
+data_2005_hc_int <- data_2005_hc_int %>%
+  left_join(player_stats_2004_covs, by = c("player2_name" = "player_name")) %>%
+  rename(
+    ace_df_ratio_player2 = ace_df_ratio,
+    average_2ndWon_player2 = average_2ndWon
+  )
+```
+
+```{r}
+data_2005_hc_int <- data_2005_hc_int %>% 
+  mutate(ace_df_ratio_diff = ace_df_ratio_player1 - ace_df_ratio_player2) %>% 
+  mutate(average_2ndWon_diff = average_2ndWon_player1 - average_2ndWon_player2)
+```
+
+
+```{r}
+set.seed(12)
+sampled_players <- sample(unique_players, 100) # sample 100 of the 185 players
+
+# Subset the matches to include only those involving the sampled players
+subset_matches <- data_2005_hc_int[data_2005_hc_int$winner_name %in% sampled_players | data_2005_hc_int$loser_name %in% sampled_players, ]
+subset_matches <- na.omit(subset_matches)
+```
+
+```{r}
+# NAs should have already been omitted at the beginning, but whatever
+subset_matches <- na.omit(subset_matches)
+```
+
+# GAM fitting
+
+```{r}
+gam_model <- gam(outcome ~ s(ace_df_ratio_diff) + s(average_2ndWon_diff), data = subset_matches, family = binomial(link = "logit"))
+```
+
+```{r}
+head(gam_model$fitted.values)
+```
+
+
+It indeed gives probabilities!
+
+Now, want to check how it performs using a prediction strategy where we predict that the outcome will be 0 (ie player 2 wins) if the fitted value is $< .5$, and the outcome will be 1 (ie player 1 wins if the fitted value is $\ge .5$.) We want to check how many misclassifications happened.
+
+```{r}
+sum(abs(round(gam_model$fitted.values) - subset_matches$outcome))
+```
+
+302 / 900 misclassifications
+
+# Testing the GAM model
+
+
+```{r}
+data_2005_hc_int_test <- anti_join(data_2005_hc_int, subset_matches, by=c('player1_name', 'player2_name')) # essentially taking the set complement df1 - df2
+data_2005_hc_int_test <- na.omit(data_2005_hc_int_test)
+```
+
+```{r}
+predicted_values <- predict(gam_model, newdata = data_2005_hc_int_test)
+sum(abs(round(predicted_values) - data_2005_hc_int_test$outcome))
+```
+
+```{r}
+predicted_values[predicted_values > 1]
+```
+
+
+124/286 misclassifications - around 56.6%% accuracy on the test set.
+
+
+Some of the fitted values exceed 1.
+
+
+TODO: will add code that has a Bradley-Terry model with the usual MLE as a baseline. 
+
+
+

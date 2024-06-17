@@ -1,0 +1,49 @@
+rank,name,country_name,country_id,value
+1,Benoit Paire,France,FRA,2.333
+2,Denis Shapovalov,Canada,CAN,2.083
+3,Alexander Bublik,Kazakhstan,KAZ,2.034
+4,Alexander Zverev,Germany,GER,1.800
+5,Felix Auger Aliassime,Canada,CAN,1.736
+6,David Goffin,Belgium,BEL,1.571
+7,Grigor Dimitrov,Bulgaria,BUL,1.563
+8,Christian Garin,Chile,CHI,1.540
+9,Hubert Hurkacz,Poland,POL,1.462
+10,Pierre Hugues Herbert,France,FRA,1.460
+11,Milos Raonic,Canada,CAN,1.415
+12,Gilles Simon,France,FRA,1.308
+13,Vasek Pospisil,Canada,CAN,1.246
+14,Jan Lennard Struff,Germany,GER,1.158
+15,Marin Cilic,Croatia,CRO,1.148
+16,Ugo Humbert,France,FRA,1.132
+17,Adrian Mannarino,France,FRA,1.118
+18,Novak Djokovic,Serbia,SRB,1.110
+19,Diego Sebastian Schwartzman,Argentina,ARG,1.094
+20,Alejandro Davidovich Fokina,Spain,ESP,1.093
+21,Tennys Sandgren,United States,USA,1.057
+22,Dominic Thiem,Austria,AUT,1.049
+23,Marton Fucsovics,Hungary,HUN,1.032
+24,Miomir Kecmanovic,Serbia,SRB,1.000
+25,Karen Khachanov,Russian Federation,RUS,0.977
+26,Daniil Medvedev,Russian Federation,RUS,0.964
+27,Jannik Sinner,Italy,ITA,0.940
+28,Marco Cecchinato,Italy,ITA,0.920
+29,Alex De Minaur,Australia,AUS,0.900
+30,John Millman,Australia,AUS,0.893
+31,Daniel Evans,United Kingdom,GBR,0.885
+32,Lloyd George Muirhead Harris,South Africa,RSA,0.882
+33,Tommy Paul,United States,USA,0.820
+34,Lorenzo Sonego,Italy,ITA,0.769
+35,Taylor Harry Fritz,United States,USA,0.766
+36,Borna Coric,Croatia,CRO,0.762
+37,Rafael Nadal,Spain,ESP,0.753
+38,Roberto Bautista Agut,Spain,ESP,0.750
+39,Frances Tiafoe,United States,USA,0.736
+40,Dusan Lajovic,Serbia,SRB,0.733
+41,Stefanos Tsitsipas,Greece,GRE,0.727
+42,Filip Krajinovic,Serbia,SRB,0.717
+43,Jordan Thompson,Australia,AUS,0.689
+44,Casper Ruud,Norway,NOR,0.648
+45,Andrey Rublev,Russian Federation,RUS,0.603
+46,Stan Wawrinka,Switzerland,SUI,0.585
+47,Pablo Carreno Busta,Spain,ESP,0.574
+48,Yoshihito Nishioka,Japan,JPN,0.500

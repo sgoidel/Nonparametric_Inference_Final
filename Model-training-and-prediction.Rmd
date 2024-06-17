@@ -1,0 +1,460 @@
+---
+title: "SVM training and prediction"
+author: "Ethan Naegele"
+date: "2024-05-24"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Model training and prediction
+
+
+```{r}
+train_control <- trainControl(
+  method = "cv",      # cross-validation
+  number = 10,        # number of folds
+  savePredictions = "final",
+  classProbs = TRUE   # if you need probability scores
+)
+
+```
+
+```{r}
+# have to rename the levels or the classification won't work
+data_train_model$outcome <- as.factor(data_train_model$outcome)
+levels(data_train_model$outcome) <- c("loss", "win")
+```
+
+
+```{r}
+svmGrid <- expand.grid(sigma = seq(0.01, 0.1, length = 5), C = seq(from = .1, to = 20, by = .5))
+set.seed(12)
+svm_model <- train(
+  outcome ~ .,
+  data = data_train_model,
+  method = "svmRadial",
+  trControl = train_control,
+  preProcess = "scale",  # scales the data
+  tuneGrid = svmGrid,
+  metric = "Accuracy"    # optimization metric
+)
+```
+
+
+
+```{r}
+class_predictions <- predict(svm_model, newdata = data_train_model)
+```
+
+
+```{r}
+confusionMatrix(class_predictions, data_train_model$outcome)
+```
+
+
+
+
+
+
+
+```{r}
+class_predictions <- predict(svm_model, newdata = data_test_model)
+```
+
+
+```{r}
+confusionMatrix(class_predictions, data_test_model$outcome)
+```
+
+
+```{r}
+rfGrid <- expand.grid(
+  mtry = seq(2, sqrt(ncol(data_train_model) - 1), by = 1)  # mtry typically ranges from 1 to the number of features
+)
+
+# Set seed for reproducibility
+set.seed(12)
+
+# Train the Random Forest model
+rf_model <- train(
+  outcome ~ .,
+  data = data_train_model,
+  method = "rf",
+  trControl = train_control,
+  preProcess = "scale",  # scales the data
+  tuneGrid = rfGrid,
+  metric = "Accuracy"    # optimization metric
+)
+
+# Print the model results
+print(rf_model)
+```
+
+
+```{r}
+predictions <- predict(rf_model, newdata = data_test_model)
+confusionMatrix(predictions, data_test_model$outcome)
+```
+
+```{r}
+knnGrid <- expand.grid(k = seq(1, 20, by = 1))
+
+# Set seed for reproducibility
+set.seed(12)
+
+# Train the KNN model with probability estimates
+knn_model <- train(
+  outcome ~ .,
+  data = data_train_model,
+  method = "knn",
+  trControl = train_control,
+  preProcess = c("center", "scale"),  # centers and scales the data
+  tuneGrid = knnGrid,
+  metric = "Accuracy"
+)
+```
+
+
+
+```{r}
+predictions <- predict(knn_model, newdata = data_test_model)
+confusionMatrix(predictions, data_test_model$outcome)
+```
+
+```{r}
+nnetGrid <- expand.grid(
+  size = seq(1, 10, by = 1),
+  decay = c(0, 0.1, 0.001)
+)
+
+nnet_model <- train(
+  outcome ~ .,
+  data = data_train_model,
+  method = "nnet",
+  trControl = train_control,
+  tuneGrid = nnetGrid,
+  preProcess = c("center", "scale"),
+  metric = "Accuracy",
+  trace = FALSE
+)
+```
+
+```{r}
+predictions <- predict(nnet_model, newdata = data_test_model)
+confusionMatrix(predictions, data_test_model$outcome)
+```
+
+```{r}
+xgbGrid <- expand.grid(
+  nrounds = 100,
+  max_depth = 6,
+  eta = 0.3,
+  gamma = 0,
+  colsample_bytree = 1,
+  min_child_weight = 1,
+  subsample = 1
+)
+
+xgb_model <- train(
+  outcome ~ .,
+  data = data_train_model,
+  method = "xgbTree",
+  trControl = train_control,
+  tuneGrid = xgbGrid,
+  metric = "Accuracy"
+)
+```
+
+
+
+```{r}
+predictions <- predict(xgb_model, newdata = data_test_model)
+confusionMatrix(predictions, data_test_model$outcome)
+```
+
+
+# training model with same covariates as the GAM
+
+```{r}
+# save all to get a CV plot
+train_control_all <- trainControl(
+  method = "cv",      # cross-validation
+  number = 10,        # number of folds
+  savePredictions = "all",
+  classProbs = TRUE   # if you need probability scores
+)
+
+```
+
+```{r}
+data_train_model_8covs <- data_train_model %>% 
+  select(outcome, first_serve_diff, second_serve_diff, aces_per_set_diff, 
+         tot_2nd_srv_in_pl_pts_w_diff, 
+          bps_per_set_diff, dfs_per_set_diff, pts_won_per_rtn_game_diff,
+         rtn_in_play_pts_won_diff)
+```
+
+
+```{r}
+svmGrid <- expand.grid(sigma = seq(0.01, 0.1, length = 5), C = seq(from = .1, to = 20, by = .5))
+set.seed(12)
+svm_model <- train(
+  outcome ~ .,
+  data = data_train_model_8covs,
+  method = "svmRadial",
+  trControl = train_control_all,
+  preProcess = "scale",  # scales the data
+  tuneGrid = svmGrid,
+  probability = TRUE,
+  metric = "Accuracy"    # optimization metric
+)
+```
+
+
+```{r}
+class_predictions <- predict(svm_model, newdata = data_test_model)
+```
+
+
+```{r}
+confusionMatrix(class_predictions, data_test_model$outcome)
+```
+
+
+```{r}
+
+# USE THIS TO COMPUTE LOGIT LOSS
+predictions <- svm_model$pred
+
+# Extract the best tuning parameters
+best_params <- svm_model$bestTune
+
+# Filter the predictions for the best tuning parameters
+best_predictions <- predictions %>%
+  filter(sigma == best_params$sigma, C == best_params$C)
+
+positive_class <- "loss"
+
+# Extract the probability estimates for the positive class
+# Note: Adjust the column name to match the actual name in your data
+prob_col_name <- 'loss'
+best_predictions <- best_predictions %>%
+  mutate(prob = get(prob_col_name))
+
+# Convert the observed class labels to binary (0 or 1)
+best_predictions <- best_predictions %>%
+  mutate(obs_binary = ifelse(obs == positive_class, 1, 0))
+
+# Calculate the logit loss function
+logit_loss <- function(actual, predicted_prob) {
+  eps <- 1e-15
+  predicted_prob <- pmax(pmin(predicted_prob, 1 - eps), eps)
+  -mean(actual * log(predicted_prob) + (1 - actual) * log(1 - predicted_prob))
+}
+
+# Compute the logit loss
+logit_loss_value <- logit_loss(best_predictions$obs_binary, best_predictions$prob)
+logit_loss_value
+```
+
+
+
+
+```{r}
+predictions <- svm_model$pred
+
+positive_class <- "loss"
+positive_class_prob_col <- "loss"
+
+# Calculate logit loss
+predictions$prob <- predictions[[positive_class_prob_col]]
+predictions$logit_loss <- - (predictions$obs == positive_class) * log(predictions$prob) - 
+                          (predictions$obs != positive_class) * log(1 - predictions$prob)
+
+# Create a data frame for plotting
+logit_loss_df <- data.frame(Observation = seq_along(predictions$logit_loss), LogitLoss = predictions$logit_loss)
+
+# Plot the logit loss
+ggplot(logit_loss_df, aes(x = Observation, y = LogitLoss)) +
+  geom_line() +
+  labs(title = "Logit Loss Plot", x = "Observation", y = "Logit Loss") +
+  theme_minimal()
+```
+
+```{r}
+predictions <- svm_model$pred
+positive_class <- "loss"
+positive_class_prob_col <- grep(positive_class, colnames(predictions), value = TRUE)
+
+predictions$prob <- predictions[[positive_class_prob_col]]
+predictions$logit_loss <- - (predictions$obs == positive_class) * log(predictions$prob) - 
+                          (predictions$obs != positive_class) * log(1 - predictions$prob)
+
+# Aggregate the logit loss by C and fold
+agg_logit_loss <- aggregate(logit_loss ~ C + Resample, data = predictions, FUN = mean)
+
+# Plot the logit loss against C
+ggplot(agg_logit_loss, aes(x = C, y = logit_loss, color = Resample, group = Resample)) +
+  geom_line() +
+  labs(title = "Logit Loss Plot by C", x = "C", y = "Logit Loss") +
+  theme_minimal()
+```
+
+
+```{r}
+predictions <- svm_model$pred
+
+# Calculate the logit loss function
+logit_loss <- function(actual, predicted_prob) {
+  eps <- 1e-15
+  predicted_prob <- pmax(pmin(predicted_prob, 1 - eps), eps)
+  -mean(actual * log(predicted_prob) + (1 - actual) * log(1 - predicted_prob))
+}
+
+# Create a dataframe to store logit loss for each fold and C value
+logit_loss_df <- predictions %>%
+  group_by(Resample, C) %>%
+  summarize(
+    logit_loss = logit_loss(as.numeric(obs) - 1, as.numeric(pred)),
+    .groups = 'drop'
+  )
+
+# Plot logit loss against C
+ggplot(logit_loss_df, aes(x = C, y = logit_loss, color = Resample)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Logit Loss vs C Parameter",
+       x = "C Parameter",
+       y = "Logit Loss") +
+  theme_minimal()
+```
+
+
+
+```{r}
+rfGrid <- expand.grid(
+  mtry = seq(2, sqrt(ncol(data_train_model) - 1), by = 1)  # mtry typically ranges from 1 to the number of features
+)
+
+# Set seed for reproducibility
+set.seed(12)
+
+# Train the Random Forest model
+rf_model <- train(
+  outcome ~ .,
+  data = data_train_model_8covs,
+  method = "rf",
+  trControl = train_control,
+  preProcess = "scale",  # scales the data
+  tuneGrid = rfGrid,
+  probability = TRUE,
+  metric = "Accuracy"    # optimization metric
+)
+
+
+```
+
+```{r}
+predictions <- predict(rf_model, newdata = data_test_model)
+confusionMatrix(predictions, data_test_model$outcome)
+```
+
+```{r}
+# USE THIS TO COMPUTE RF LOGIT LOSS
+predictions <- rf_model$pred
+
+# Extract the best tuning parameters
+best_params <- rf_model$bestTune
+
+# Filter the predictions for the best tuning parameters
+best_predictions <- predictions 
+
+positive_class <- "loss"
+
+# Extract the probability estimates for the positive class
+# Note: Adjust the column name to match the actual name in your data
+prob_col_name <- 'loss'
+best_predictions <- best_predictions %>%
+  mutate(prob = get(prob_col_name))
+
+# Convert the observed class labels to binary (0 or 1)
+best_predictions <- best_predictions %>%
+  mutate(obs_binary = ifelse(obs == positive_class, 1, 0))
+
+# Calculate the logit loss function
+logit_loss <- function(actual, predicted_prob) {
+  eps <- 1e-15
+  predicted_prob <- pmax(pmin(predicted_prob, 1 - eps), eps)
+  -mean(actual * log(predicted_prob) + (1 - actual) * log(1 - predicted_prob))
+}
+
+# Compute the logit loss
+logit_loss_value <- logit_loss(best_predictions$obs_binary, best_predictions$prob)
+logit_loss_value
+```
+
+
+
+```{r}
+knnGrid <- expand.grid(k = seq(1, 30, by = 1))
+
+# Set seed for reproducibility
+set.seed(12)
+
+# Train the KNN model with probability estimates
+knn_model <- train(
+  outcome ~ .,
+  data = data_train_model_8covs,
+  method = "knn",
+  trControl = train_control,
+  preProcess = c("center", "scale"),  # centers and scales the data
+  tuneGrid = knnGrid,
+  metric = "Accuracy"
+)
+```
+
+
+
+```{r}
+predictions <- predict(knn_model, newdata = data_test_model)
+confusionMatrix(predictions, data_test_model$outcome)
+```
+
+
+```{r}
+# USE THIS TO COMPUTE KNN LOGIT LOSS
+predictions <- knn_model$pred
+
+# Extract the best tuning parameters
+best_params <- knn_model$bestTune
+
+# Filter the predictions for the best tuning parameters
+best_predictions <- predictions 
+
+positive_class <- "loss"
+
+# Extract the probability estimates for the positive class
+# Note: Adjust the column name to match the actual name in your data
+prob_col_name <- 'loss'
+best_predictions <- best_predictions %>%
+  mutate(prob = get(prob_col_name))
+
+# Convert the observed class labels to binary (0 or 1)
+best_predictions <- best_predictions %>%
+  mutate(obs_binary = ifelse(obs == positive_class, 1, 0))
+
+# Calculate the logit loss function
+logit_loss <- function(actual, predicted_prob) {
+  eps <- 1e-15
+  predicted_prob <- pmax(pmin(predicted_prob, 1 - eps), eps)
+  -mean(actual * log(predicted_prob) + (1 - actual) * log(1 - predicted_prob))
+}
+
+# Compute the logit loss
+logit_loss_value <- logit_loss(best_predictions$obs_binary, best_predictions$prob)
+logit_loss_value
+```
+

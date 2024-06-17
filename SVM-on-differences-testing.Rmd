@@ -1,0 +1,368 @@
+---
+title: "SVM on differences - test run"
+author: "Ethan Naegele"
+date: "2024-05-13"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(gam)
+library(lubridate)
+library(caret)
+library(splines)
+library(locfit)
+library(locpol)
+library(BradleyTerry2)
+library(mgcv)
+library(e1071)
+```
+
+```{r}
+data_2004_hc <- data_2004 %>% 
+  filter(surface == 'Hard')
+```
+
+
+```{r}
+data_2005_hc <- data_2005 %>% # hard court only
+  filter(surface == 'Hard')
+```
+
+
+```{r}
+# Selecting some of the columns for analysis
+data_2004_hc <- data_2004_hc %>% 
+  select(tourney_name, tourney_date, winner_name, winner_ht,
+         winner_age, loser_name, loser_ht, loser_age, score,
+         w_ace, w_df, w_1stIn, w_1stWon, w_svpt, w_2ndWon, w_bpFaced, w_bpSaved,
+         l_ace, l_df, l_1stIn, l_1stWon, l_svpt, l_2ndWon, l_bpFaced, l_bpSaved,
+         winner_rank, loser_rank)
+```
+
+
+```{r}
+# Selecting some of the columns for analysis
+data_2005_hc <- data_2005_hc %>% 
+  select(tourney_name, tourney_date, winner_name, winner_ht,
+         winner_age, loser_name, loser_ht, loser_age, score,
+         w_ace, w_df, w_1stIn, w_1stWon, w_svpt, w_2ndWon, w_bpFaced, w_bpSaved,
+         l_ace, l_df, l_1stIn, l_1stWon, l_svpt, l_2ndWon, l_bpFaced, l_bpSaved,
+         winner_rank, loser_rank)
+```
+
+```{r}
+data_2004_hc <- na.omit(data_2004_hc) # just going to omit any rows with NAs in the dataframe for now
+```
+
+```{r}
+data_2005_hc <- na.omit(data_2005_hc) # just going to omit any rows with NAs in the dataframe for now
+```
+
+```{r}
+data_2004_hc$player1_name <- ifelse(data_2004_hc$winner_rank < data_2004_hc$loser_rank, data_2004_hc$winner_name, data_2004_hc$loser_name) # denote player 1 by whoever has higher rank, for sake of consistency
+
+data_2004_hc$player2_name <- ifelse(data_2004_hc$winner_rank < data_2004_hc$loser_rank, data_2004_hc$loser_name, data_2004_hc$winner_name)
+
+
+```
+
+```{r}
+data_2005_hc$player1_name <- ifelse(data_2005_hc$winner_rank < data_2005_hc$loser_rank, data_2005_hc$winner_name, data_2005_hc$loser_name) # denote player 1 by whoever has higher rank, for sake of consistency
+
+data_2005_hc$player2_name <- ifelse(data_2005_hc$winner_rank < data_2005_hc$loser_rank, data_2005_hc$loser_name, data_2005_hc$winner_name)
+
+
+```
+
+
+```{r}
+ # Create a binary outcome variable (1 if player1 wins, 0 if player2 wins)
+data_2005_hc$outcome <- ifelse(data_2005_hc$winner_rank < data_2005_hc$loser_rank, 1, 0)
+
+
+data_2005_hc$player1_name <- as.factor(data_2005_hc$player1_name)
+data_2005_hc$player2_name <- as.factor(data_2005_hc$player2_name)
+```
+
+```{r}
+all_players_hc_2004 <- c(data_2004_hc$winner_name, data_2004_hc$loser_name)
+unique_players_hc_2004 <- unique(all_players_hc_2004)
+all_players_hc_2005 <- c(data_2005_hc$winner_name, data_2005_hc$loser_name)
+unique_players_hc_2005 <- unique(all_players_hc_2005)
+unique_players <- intersect(unique_players_hc_2004, unique_players_hc_2005)
+```
+
+```{r}
+# the intersection - players that played in both years
+data_2005_hc_int <- data_2005_hc %>% 
+  filter(winner_name %in% unique_players & loser_name %in% unique_players)
+```
+
+```{r}
+# the intersection - players that played in both years
+data_2004_hc_int <- data_2004_hc %>% 
+  filter(winner_name %in% unique_players & loser_name %in% unique_players)
+```
+
+```{r}
+data_2005_hc_int <- na.omit(data_2005_hc_int)
+data_2004_hc_int <- na.omit(data_2004_hc_int)
+```
+
+```{r}
+set.seed(12)
+sampled_players <- sample(unique_players, 100) # sample 100 of the 185 players
+
+# Subset the matches to include only those involving the sampled players
+subset_matches <- data_2005_hc_int[data_2005_hc_int$winner_name %in% sampled_players | data_2005_hc_int$loser_name %in% sampled_players, ]
+
+```
+
+
+```{r}
+
+# Assuming your data is in data_2004_hc_int
+
+# Step 1: Reshape the data
+data_winner <- data_2004_hc_int %>%
+  select(winner_name, w_ace, w_df,  w_1stIn, w_1stWon, w_svpt, w_2ndWon, w_bpFaced, w_bpSaved) %>%
+  rename(player_name = winner_name, player_ace = w_ace, player_df = w_df, 
+         player_1stIn = w_1stIn,
+         player_1stWon = w_1stWon,
+         player_svpt = w_svpt,
+         player_2ndWon = w_2ndWon,
+         player_bpFaced = w_bpFaced,
+         player_bpSaved = w_bpSaved
+         ) %>% 
+  mutate(player_1stEfficiency = player_1stWon / pmax(player_1stIn, 1)) %>% 
+  mutate(player_2ndEfficiency = player_2ndWon / pmax(player_svpt - player_1stIn, 1))
+  
+
+data_loser <- data_2004_hc_int %>%
+  select(loser_name, l_ace, l_df, l_1stIn, l_1stWon, l_svpt, l_2ndWon, l_bpFaced, l_bpSaved) %>%
+  rename(player_name = loser_name, player_ace = l_ace, player_df = l_df,
+         player_1stIn = l_1stIn,
+         player_1stWon = l_1stWon,
+         player_svpt = l_svpt,
+         player_2ndWon = l_2ndWon,
+         player_bpFaced = l_bpFaced,
+         player_bpSaved = l_bpSaved
+         ) %>% 
+  mutate(player_1stEfficiency = player_1stWon / pmax(player_1stIn, 1)) %>% 
+  mutate(player_2ndEfficiency = player_2ndWon / pmax(player_svpt - player_1stIn, 1))
+
+# Combine both datasets
+combined_data <- bind_rows(data_winner, data_loser)
+
+# Step 2: Aggregate the data
+player_stats_2004_hc_int <- combined_data %>%
+  group_by(player_name) %>%
+  summarise(
+    total_aces = sum(player_ace, na.rm = TRUE),
+    total_dfs = sum(player_df, na.rm = TRUE),
+    average_2ndWon = mean(player_2ndWon, na.rm = TRUE),
+    average_1stEfficiency = mean(player_1stEfficiency, na.rm = TRUE),
+    average_2ndEfficiency = mean(player_2ndEfficiency, na.rm = TRUE),
+    total_bpSaved = sum(player_bpSaved, na.rm = TRUE),
+    total_bpFaced = sum(player_bpFaced, na.rm = TRUE),
+    .groups = 'drop'  # This drops the grouping structure after summarising
+  )
+
+# Step 3: Calculate ace to double fault ratio
+player_stats_2004_hc_int <- player_stats_2004_hc_int %>%
+  mutate(ace_df_ratio = total_aces / pmax(total_dfs, 1)) %>% 
+# this gives the aggregated ace to double fault ratio over the whole year, as opposed to the average of the ratios over the whole year, which are probably different by Jensen's inequality
+  mutate(bp_saved_faced_ratio = total_bpSaved / pmax(total_bpFaced, 1))
+
+# View the result
+print(player_stats_2004_hc_int)
+
+```
+
+
+```{r}
+player_stats_2004_covs <- player_stats_2004_hc_int %>% 
+  select(player_name, ace_df_ratio, average_1stEfficiency, average_2ndEfficiency, bp_saved_faced_ratio)
+```
+
+```{r}
+player_stats_2004_covs$ace_df_ratio <- as.vector(scale(player_stats_2004_covs$ace_df_ratio))
+player_stats_2004_covs$average_1stEfficiency <- as.vector(scale(player_stats_2004_covs$average_1stEfficiency))
+player_stats_2004_covs$average_2ndEfficiency <- as.vector(scale(player_stats_2004_covs$average_2ndEfficiency))
+player_stats_2004_covs$bp_saved_faced_ratio <- as.vector(scale(player_stats_2004_covs$bp_saved_faced_ratio))
+```
+
+
+```{r}
+# join for player 1
+data_2005_hc_int <- data_2005_hc_int %>%
+  left_join(player_stats_2004_covs, by = c("player1_name" = "player_name")) %>%
+  rename(
+    ace_df_ratio_player1 = ace_df_ratio,
+    average_1stEfficiency_player1 = average_1stEfficiency,
+    average_2ndEfficiency_player1 = average_2ndEfficiency,
+    bp_saved_faced_ratio_player1 = bp_saved_faced_ratio
+  )
+
+# Join for player2
+data_2005_hc_int <- data_2005_hc_int %>%
+  left_join(player_stats_2004_covs, by = c("player2_name" = "player_name")) %>%
+  rename(
+    ace_df_ratio_player2 = ace_df_ratio,
+    average_1stEfficiency_player2 = average_1stEfficiency,
+    average_2ndEfficiency_player2 = average_2ndEfficiency,
+    bp_saved_faced_ratio_player2 = bp_saved_faced_ratio
+  )
+```
+
+```{r}
+data_2005_hc_int <- data_2005_hc_int %>% 
+  mutate(ace_df_ratio_diff = ace_df_ratio_player1 - ace_df_ratio_player2) %>% 
+  mutate(average_1stEfficiency_diff = average_1stEfficiency_player1 - average_1stEfficiency_player2) %>% 
+  mutate(average_2ndEfficiency_diff = average_2ndEfficiency_player1 - average_2ndEfficiency_player2) %>%
+  mutate(bp_saved_faced_ratio_diff = bp_saved_faced_ratio_player1 - bp_saved_faced_ratio_player2)
+data_2005_hc_int$outcome <- as.factor(data_2005_hc_int$outcome)
+```
+
+```{r}
+# have to rename the levels or the classification won't work
+levels(data_2005_hc_int$outcome) <- c("loss", "win")
+```
+
+```{r}
+set.seed(12)
+sampled_players <- sample(unique_players, 140) # sample 140 of the 185 players
+
+# Subset the matches to include only those involving the sampled players
+subset_matches <- data_2005_hc_int[data_2005_hc_int$winner_name %in% sampled_players & data_2005_hc_int$loser_name %in% sampled_players, ]
+```
+
+```{r}
+# NAs should have already been omitted at the beginning, but whatever
+subset_matches <- na.omit(subset_matches)
+```
+
+```{r}
+train_control <- trainControl(
+  method = "cv",      # cross-validation
+  number = 10,        # number of folds
+  savePredictions = "final",
+  classProbs = TRUE   # if you need probability scores
+)
+
+```
+
+
+
+
+```{r}
+svmGrid <- expand.grid(sigma = seq(0.01, 0.1, length = 5), C = 2^(2:7))
+set.seed(12)
+svm_model <- train(
+  outcome ~ ace_df_ratio_diff + average_1stEfficiency_diff + average_2ndEfficiency_diff + bp_saved_faced_ratio_diff,
+  data = subset_matches,
+  method = "svmRadial",
+  trControl = train_control,
+  preProcess = "scale",  # scales the data
+  tuneGrid = svmGrid,
+  metric = "Accuracy"    # optimization metric
+)
+```
+
+```{r}
+data_2005_hc_int_test <- anti_join(data_2005_hc_int, subset_matches, by=c('player1_name', 'player2_name')) # essentially taking the set complement df1 - df2
+data_2005_hc_int_test <- na.omit(data_2005_hc_int_test)
+```
+
+
+
+```{r}
+class_predictions <- predict(svm_model, newdata = data_2005_hc_int_test)
+```
+
+
+```{r}
+confusionMatrix(class_predictions, data_2005_hc_int_test$outcome)
+```
+
+
+
+# Trying to make a prediction without using the break point stats and better cost tuning
+
+
+```{r}
+svmGrid <- expand.grid(sigma = seq(0.01, 0.1, length = 5), C = seq(from = .1, to = 20, by = .1))
+set.seed(12)
+svm_model2 <- train(
+  outcome ~ ace_df_ratio_diff + average_1stEfficiency_diff + average_2ndEfficiency_diff,
+  data = subset_matches,
+  method = "svmRadial",
+  trControl = train_control,
+  preProcess = "scale",  # scales the data
+  tuneGrid = svmGrid,
+  metric = "Accuracy"    # optimization metric
+)
+```
+
+
+```{r}
+class_predictions2 <- predict(svm_model2, newdata = data_2005_hc_int_test)
+```
+
+```{r}
+confusionMatrix(class_predictions2, data_2005_hc_int_test$outcome)
+```
+
+# Trying to fit a model with the break points stats and with the better cost tuning
+
+```{r}
+svmGrid <- expand.grid(sigma = seq(0.01, 0.1, length = 5), C = seq(from = .1, to = 20, by = .1))
+set.seed(12)
+svm_model3 <- train(
+  outcome ~ ace_df_ratio_diff + average_1stEfficiency_diff + average_2ndEfficiency_diff + bp_saved_faced_ratio_diff,
+  data = subset_matches,
+  method = "svmRadial",
+  trControl = train_control,
+  preProcess = "scale",  # scales the data
+  tuneGrid = svmGrid,
+  metric = "Accuracy"    # optimization metric
+)
+```
+
+
+```{r}
+class_predictions3 <- predict(svm_model3, newdata = data_2005_hc_int_test)
+```
+
+
+```{r}
+confusionMatrix(class_predictions3, data_2005_hc_int_test$outcome)
+```
+
+
+# Trying random forest model
+
+```{r}
+set.seed(12)
+rf_model <- train(
+  outcome ~ ace_df_ratio_diff + average_1stEfficiency_diff + average_2ndEfficiency_diff + bp_saved_faced_ratio_diff,
+  data = subset_matches,
+  method = "rf",             # indicates Random Forest
+  trControl = train_control,
+  ntree = 500,               # number of trees to grow
+  tuneLength = 3             # caret will try 10 different values for mtry
+)
+```
+
+```{r}
+rf_predictions <- predict(rf_model, newdata = data_2005_hc_int_test)
+confusionMatrix(rf_predictions, data_2005_hc_int_test$outcome)
+```
+
+
+

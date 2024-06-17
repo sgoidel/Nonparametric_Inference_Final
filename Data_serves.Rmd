@@ -1,0 +1,73 @@
+---
+title: "Script"
+output: html_document
+date: "2024-05-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+data <- read.csv("atp_matches_2023.csv")
+
+filtered_data <- data %>%
+  filter(winner_rank <= 50 | loser_rank <= 50) %>%
+  mutate(
+    w_2ndServeWinPct = ifelse((w_svpt - w_1stIn) > 0, (w_2ndWon / (w_svpt - w_1stIn)) * 100, NA),
+    l_2ndServeWinPct = ifelse((l_svpt - l_1stIn) > 0, (l_2ndWon / (l_svpt - l_1stIn)) * 100, NA)
+  )
+
+player_stats <- filtered_data %>%
+  select(winner_name, winner_rank, w_2ndServeWinPct) %>%
+  rename(player_name = winner_name, player_rank = winner_rank, secondServeWinPct = w_2ndServeWinPct) %>%
+  bind_rows(
+    filtered_data %>%
+      select(loser_name, loser_rank, l_2ndServeWinPct) %>%
+      rename(player_name = loser_name, player_rank = loser_rank, secondServeWinPct = l_2ndServeWinPct)
+  )
+
+player_stats_summary <- player_stats %>%
+  group_by(player_name, player_rank) %>%
+  summarize(
+    avg_secondServeWinPct = mean(secondServeWinPct, na.rm = TRUE)
+  ) %>%
+  arrange(player_rank)
+
+print(player_stats_summary)
+```
+
+
+```{r}
+library(dplyr)
+
+data <- read.csv("atp_matches_2023.csv")
+
+filtered_data <- data %>%
+  filter(winner_rank <= 50 | loser_rank <= 50) %>%
+  mutate(
+    w_2ndServeWinPct = ifelse((w_svpt - w_1stIn) > 0, (w_2ndWon / (w_svpt - w_1stIn)) * 100, NA),
+    l_2ndServeWinPct = ifelse((l_svpt - l_1stIn) > 0, (l_2ndWon / (l_svpt - l_1stIn)) * 100, NA)
+  )
+
+player_stats <- filtered_data %>%
+  select(winner_name, winner_rank, w_2ndServeWinPct) %>%
+  rename(player_name = winner_name, player_rank = winner_rank, secondServeWinPct = w_2ndServeWinPct) %>%
+  bind_rows(
+    filtered_data %>%
+      select(loser_name, loser_rank, l_2ndServeWinPct) %>%
+      rename(player_name = loser_name, player_rank = loser_rank, secondServeWinPct = l_2ndServeWinPct)
+  )
+
+player_stats_summary <- player_stats %>%
+  group_by(player_name, player_rank) %>%
+  summarize(
+    avg_secondServeWinPct = mean(secondServeWinPct, na.rm = TRUE)
+  ) %>%
+  arrange(player_rank)
+
+print(player_stats_summary)
+
+```
+

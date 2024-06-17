@@ -1,0 +1,128 @@
+rank,name,country_name,country_id,value
+1,Diego Sebastian Schwartzman,Argentina,ARG,2.773
+2,Rafael Nadal,Spain,ESP,2.767
+3,Carlos Alcaraz Garfia,Spain,ESP,2.764
+4,Mikael Ymer,Sweden,SWE,2.747
+5,Novak Djokovic,Serbia,SRB,2.731
+6,Alex De Minaur,Australia,AUS,2.650
+7,Gael Monfils,France,FRA,2.644
+8,Pedro Martinez Portero,Spain,ESP,2.628
+9,Jaume Munar,Spain,ESP,2.624
+10,Francisco Cerundolo,Argentina,ARG,2.624
+11,Daniil Medvedev,Russian Federation,RUS,2.597
+12,Sebastian Korda,United States,USA,2.582
+13,Roman Safiullin,Russian Federation,RUS,2.579
+14,Emil Ruusuvuori,Finland,FIN,2.575
+15,Sebastian Baez,Argentina,ARG,2.550
+16,Jannik Sinner,Italy,ITA,2.540
+17,Roberto Bautista Agut,Spain,ESP,2.525
+18,Gilles Simon,France,FRA,2.517
+19,Joao Sousa,Portugal,POR,2.517
+20,Federico Coria,Argentina,ARG,2.515
+21,David Goffin,Belgium,BEL,2.513
+22,Miomir Kecmanovic,Serbia,SRB,2.507
+23,Alexander Zverev,Germany,GER,2.501
+24,Andrey Rublev,Russian Federation,RUS,2.495
+25,Jenson Brooksby,United States,USA,2.495
+26,Alejandro Tabilo,Chile,CHI,2.493
+27,Pablo Carreno Busta,Spain,ESP,2.484
+28,Cameron Norrie,United Kingdom,GBR,2.484
+29,Aslan Karatsev,Russian Federation,RUS,2.480
+30,Hugo Gaston,France,FRA,2.480
+31,Richard Gasquet,France,FRA,2.478
+32,Alejandro Davidovich Fokina,Spain,ESP,2.475
+33,Albert Ramos,Spain,ESP,2.471
+34,Taylor Harry Fritz,United States,USA,2.461
+35,Daniel Evans,United Kingdom,GBR,2.458
+36,Christian Garin,Chile,CHI,2.453
+37,Hugo Dellien,"Bolivia, Plurinational State of",BOL,2.451
+38,Felix Auger Aliassime,Canada,CAN,2.447
+39,Casper Ruud,Norway,NOR,2.438
+40,Ryan Peniston,United Kingdom,GBR,2.429
+41,Daniel Elahi Galan Riveros,Colombia,COL,2.410
+42,Botic Van De Zandschulp,Netherlands,NED,2.407
+43,Jeffrey John Wolf,United States,USA,2.402
+44,Alex Molcan,Slovakia,SVK,2.385
+45,Mackenzie Mcdonald,United States,USA,2.378
+46,Holger Vitus Nodskov Rune,Denmark,DEN,2.376
+47,Corentin Moutet,France,FRA,2.370
+48,Lorenzo Musetti,Italy,ITA,2.367
+49,Dominik Koepfer,Germany,GER,2.366
+50,Elias Ymer,Sweden,SWE,2.363
+51,Adrian Mannarino,France,FRA,2.361
+52,Grigor Dimitrov,Bulgaria,BUL,2.347
+53,Tommy Paul,United States,USA,2.342
+54,Andy Murray,United Kingdom,GBR,2.337
+55,Marin Cilic,Croatia,CRO,2.335
+56,Fernando Verdasco,Spain,ESP,2.333
+57,Stefan Kozlov,United States,USA,2.323
+58,Christopher Oconnell,Australia,AUS,2.322
+59,Egor Gerasimov,Belarus,BLR,2.307
+60,Lorenzo Sonego,Italy,ITA,2.306
+61,Frances Tiafoe,United States,USA,2.303
+62,Bernabe Zapata Miralles,Spain,ESP,2.281
+63,Ugo Humbert,France,FRA,2.273
+64,Federico Delbonis,Argentina,ARG,2.263
+65,Stefanos Tsitsipas,Greece,GRE,2.258
+66,Denis Shapovalov,Canada,CAN,2.255
+67,Benjamin Bonzi,France,FRA,2.255
+68,Dusan Lajovic,Serbia,SRB,2.254
+69,Quentin Halys,France,FRA,2.251
+70,Yoshihito Nishioka,Japan,JPN,2.251
+71,Karen Khachanov,Russian Federation,RUS,2.249
+72,Pablo Andujar,Spain,ESP,2.235
+73,Facundo Bagnis,Argentina,ARG,2.222
+74,Ilya Ivashka,Belarus,BLR,2.221
+75,Dominic Thiem,Austria,AUT,2.209
+76,Hubert Hurkacz,Poland,POL,2.209
+77,Soon Woo Kwon,"Korea, Republic of",KOR,2.207
+78,Marton Fucsovics,Hungary,HUN,2.204
+79,Jason Kubler,Australia,AUS,2.196
+80,Jack Draper,United Kingdom,GBR,2.194
+81,Taro Daniel,Japan,JPN,2.182
+82,Benoit Paire,France,FRA,2.180
+83,Roberto Carballes Baena,Spain,ESP,2.179
+84,Nick Kyrgios,Australia,AUS,2.176
+85,Borna Coric,Croatia,CRO,2.176
+86,Alexander Bublik,Kazakhstan,KAZ,2.170
+87,Tallon Griekspoor,Netherlands,NED,2.168
+88,Kamil Majchrzak,Poland,POL,2.167
+89,Ricardas Berankis,Lithuania,LTU,2.167
+90,Fabio Fognini,Italy,ITA,2.157
+91,Jiri Lehecka,Czech Republic,CZE,2.155
+92,Radu Albot,"Moldova, Republic of",MDA,2.151
+93,Filip Krajinovic,Serbia,SRB,2.138
+94,Matteo Berrettini,Italy,ITA,2.133
+95,Laslo Djere,Serbia,SRB,2.123
+96,Brandon Nakashima,United States,USA,2.116
+97,Alexei Popyrin,Australia,AUS,2.111
+98,Jack Sock,United States,USA,2.106
+99,Dominic Stephan Stricker,Switzerland,SUI,2.094
+100,Marcos Giron,United States,USA,2.088
+101,Oscar Otte,Germany,GER,2.077
+102,Peter Gojowczyk,Germany,GER,2.058
+103,John Millman,Australia,AUS,2.052
+104,Stan Wawrinka,Switzerland,SUI,2.041
+105,Henri Laaksonen,Switzerland,SUI,2.024
+106,Carlos Taberner,Spain,ESP,2.024
+107,Liam Broady,United Kingdom,GBR,2.016
+108,Jan Lennard Struff,Germany,GER,2.015
+109,Jordan Thompson,Australia,AUS,2.012
+110,Nikoloz Basilashvili,Georgia,GEO,2.012
+111,Thiago Monteiro,Brazil,BRA,2.011
+112,Thanasi Kokkinakis,Australia,AUS,2.009
+113,Lloyd George Muirhead Harris,South Africa,RSA,1.995
+114,Arthur Rinderknech,France,FRA,1.930
+115,Sam Querrey,United States,USA,1.924
+116,Tomas Martin Etcheverry,Argentina,ARG,1.922
+117,Marc Andrea Huesler,Switzerland,SUI,1.915
+118,James Duckworth,Australia,AUS,1.884
+119,Jiri Vesely,Czech Republic,CZE,1.883
+120,Daniel Altmaier,Germany,GER,1.874
+121,Denis Kudla,United States,USA,1.874
+122,Maxime Cressy,United States,USA,1.868
+123,Tim Van Rijthoven,Netherlands,NED,1.824
+124,Steve Johnson,United States,USA,1.790
+125,Reilly Opelka,United States,USA,1.765
+126,Aljaz Bedene,Slovenia,SLO,1.710
+127,John Isner,United States,USA,1.656
